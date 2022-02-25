@@ -48,7 +48,8 @@ class Background:
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.background, (0, 0))
     
-    def update(self, config: Config) -> None:
+    def update(self) -> None:
+        pass
         pass
 
 class Game:
@@ -74,7 +75,7 @@ class Game:
                 self.running = False
     
     def update(self) -> None:
-        self.background.update(self.config)
+        self.background.update()
     
     def draw(self) -> None:
         self.background.draw(self.screen)
