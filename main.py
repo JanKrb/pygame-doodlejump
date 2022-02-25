@@ -99,6 +99,16 @@ class Button(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
         screen.blit(self.text, self.text_rect)
 
+class GameState:
+    def __init__(self, config: Config) -> None:
+        self.config = config
+
+    def draw(self, screen: pygame.Surface) -> None:
+        pass
+    
+    def update(self) -> None:
+        pass
+
         pass
 
 class Game:
@@ -110,6 +120,7 @@ class Game:
         pygame.display.set_caption(self.config.config['screen']['title'])
         self.clock = pygame.time.Clock()
         self.running = True
+        self.state = StartState(self.config)
 
         self.background = Background(config)
     
@@ -127,9 +138,11 @@ class Game:
     
     def update(self) -> None:
         self.background.update()
+        self.state.update()
     
     def draw(self) -> None:
         self.background.draw(self.screen)
+        self.state.draw(self.screen)
         pygame.display.flip()
 
 
