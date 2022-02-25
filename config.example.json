@@ -1,11 +1,24 @@
 {
     "images": {
-        "background": "background.png"
+        "background": "background.png",
+        "logo": "logo.png"
     },
     "screen": {
-        "width": 450,
-        "height": 800,
+        "width": 532,
+        "height": 850,
         "title": "Doodle Jump",
         "fps": 60
+    },
+    "start_screen": {
+        "logo_position": {
+            "x": 0,
+            "y": 100,
+            "center_x": true,
+            "center_y": false
+        },
+        "logo_size": {
+            "width": 91,
+            "height": 102
+        }
     }
 }

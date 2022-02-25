@@ -109,6 +109,38 @@ class GameState:
     def update(self) -> None:
         pass
 
+class StartState(GameState):
+    def __init__(self, config: Config) -> None:
+        super().__init__(config)
+
+        self.logo = pygame.image.load(os.path.join(Path.assets_images_path, self.config.config['images']['logo'])).convert_alpha()
+        self.logo = pygame.transform.scale(self.logo, (self.config.config['start_screen']['logo_size']['width'], self.config.config['start_screen']['logo_size']['height']))
+        self.logo_rect = self.logo.get_rect()
+        center_logo_x = self.config.config['start_screen']['logo_position']['center_x']
+        center_logo_y = self.config.config['start_screen']['logo_position']['center_y']
+
+        if center_logo_x:
+            self.logo_rect.centerx = self.config.config['screen']['width'] / 2
+        else:
+            self.logo_rect.x = self.config.config['start_screen']['logo_position']['x']
+        
+        if center_logo_y:
+            self.logo_rect.centery = self.config.config['screen']['height'] / 2
+        else:
+            self.logo_rect.y = self.config.config['start_screen']['logo_position']['y']
+        
+
+        self.start_button = Button(config, 250, 50, None, 150, 'Start Game', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
+
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.logo, self.logo_rect)
+        self.start_button.draw(screen)
+    
+    def update(self) -> None:
+        self.start_button.update()
+
+    def start_game(self) -> None:
         pass
 
 class Game:
