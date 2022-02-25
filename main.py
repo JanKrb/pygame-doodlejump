@@ -103,6 +103,8 @@ class Button(pygame.sprite.Sprite):
 
 class Game:
     def __init__(self, config: Config) -> None:
+        pygame.init()
+
         self.config = config
         self.screen = pygame.display.set_mode((self.config.config['screen']['width'], self.config.config['screen']['height']))
         pygame.display.set_caption(self.config.config['screen']['title'])
