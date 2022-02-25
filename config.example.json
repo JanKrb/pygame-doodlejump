@@ -1,3 +1,11 @@
 {
-    "name": "Test"
+    "images": {
+        "background": "background.png"
+    },
+    "screen": {
+        "width": 450,
+        "height": 800,
+        "title": "Doodle Jump",
+        "fps": 60
+    }
 }
