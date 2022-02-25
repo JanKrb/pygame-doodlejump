@@ -50,6 +50,55 @@ class Background:
     
     def update(self) -> None:
         pass
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, config: Config, width: int, height: int, x: int|None, y: int, text: str, color: tuple = (0, 0, 0), font: tuple|pygame.font.Font = ('arial', 24)) -> None:
+        super().__init__()
+
+        self.config = config
+
+        self.image_selected = pygame.image.load(os.path.join(Path.assets_images_path, config.config['images']['menu_item_selected'])).convert_alpha()
+        self.image_unselected = pygame.image.load(os.path.join(Path.assets_images_path, config.config['images']['menu_item_unselected'])).convert_alpha()
+
+        self.image_selected = pygame.transform.scale(self.image_selected, (width, height))
+        self.image_unselected = pygame.transform.scale(self.image_unselected, (width, height))
+
+        self.image = self.image_unselected
+        self.rect = self.image.get_rect()
+
+        if x is None:
+            self.rect.centerx = config.config['screen']['width'] / 2
+        else:
+            self.rect.centerx = x
+        
+        if y is None:
+            self.rect.centery = config.config['screen']['height'] / 2
+        else:
+            self.rect.centery = y
+
+        if type(font) is tuple:
+            self.font = pygame.font.SysFont(*font)
+        else:
+            self.font = font
+        
+        self.text = self.font.render(text, True, color)
+        self.text_rect = self.text.get_rect()
+        self.text_rect.center = self.rect.center
+
+        self.hovered = False
+        self.click_event = lambda: print('Button has no click event')
+    
+    def update(self) -> None:
+        old_hovered = self.hovered
+        self.hovered = self.rect.collidepoint(pygame.mouse.get_pos())
+
+        if self.hovered != old_hovered:
+            self.image = self.image_selected if self.hovered else self.image_unselected
+
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.image, self.rect)
+        screen.blit(self.text, self.text_rect)
+
         pass
 
 class Game:
