@@ -52,7 +52,7 @@ class Background:
         pass
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, config: Config, width: int, height: int, x: int|None, y: int, text: str, color: tuple = (0, 0, 0), font: tuple|pygame.font.Font = ('arial', 24)) -> None:
+    def __init__(self, config: Config, width: int, height: int, x: int|None, y: int, text: str, color: tuple = (0, 0, 0), font: tuple|pygame.font.Font = ('arial', 24), click_callback=None) -> None:
         super().__init__()
 
         self.config = config
@@ -65,6 +65,8 @@ class Button(pygame.sprite.Sprite):
 
         self.image = self.image_unselected
         self.rect = self.image.get_rect()
+
+        self.click_callback = click_callback
 
         if x is None:
             self.rect.centerx = config.config['screen']['width'] / 2
@@ -86,7 +88,6 @@ class Button(pygame.sprite.Sprite):
         self.text_rect.center = self.rect.center
 
         self.hovered = False
-        self.click_event = lambda: print('Button has no click event')
     
     def update(self) -> None:
         old_hovered = self.hovered
@@ -98,6 +99,10 @@ class Button(pygame.sprite.Sprite):
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.image, self.rect)
         screen.blit(self.text, self.text_rect)
+    
+    def trigger_click(self):
+        if self.hovered:
+            self.click_callback()
 
 class GameState:
     def __init__(self, config: Config) -> None:
@@ -109,8 +114,48 @@ class GameState:
     def update(self) -> None:
         pass
 
-class StartState(GameState):
+class Game:
     def __init__(self, config: Config) -> None:
+        pygame.init()
+
+        self.config = config
+        self.screen = pygame.display.set_mode((self.config.config['screen']['width'], self.config.config['screen']['height']))
+        pygame.display.set_caption(self.config.config['screen']['title'])
+        self.clock = pygame.time.Clock()
+        self.running = True
+
+        self.background = Background(config)
+        self.buttons = pygame.sprite.Group()
+
+        self.state = StartState(self.config, self)
+    
+    def run(self) -> None:
+        while self.running:
+            self.clock.tick(self.config.config['screen']['fps'])
+            self.events()
+            self.update()
+            self.draw()
+    
+    def events(self) -> None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    [button.trigger_click() for button in self.buttons]
+    
+    def update(self) -> None:
+        self.background.update()
+        self.state.update()
+    
+    def draw(self) -> None:
+        self.background.draw(self.screen)
+        self.state.draw(self.screen)
+        pygame.display.flip()
+
+
+class StartState(GameState):
+    def __init__(self, config: Config, game: Game) -> None:
         super().__init__(config)
 
         self.logo = pygame.image.load(os.path.join(Path.assets_images_path, self.config.config['images']['logo'])).convert_alpha()
@@ -130,9 +175,11 @@ class StartState(GameState):
             self.logo_rect.y = self.config.config['start_screen']['logo_position']['y']
         
 
-        self.start_button = Button(config, 250, 50, None, self.logo_rect.bottom + self.config.config['start_screen']['play_button']['logo_margin_top'], 'Start Game', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
-        self.quit_button = Button(config, 250, 50, None, self.start_button.rect.bottom + self.config.config['start_screen']['quit_button']['play_margin_top'], 'Quit', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
+        self.start_button = Button(config, 250, 50, None, self.logo_rect.bottom + self.config.config['start_screen']['play_button']['logo_margin_top'], 'Start Game', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30), self.start_game)
+        self.quit_button = Button(config, 250, 50, None, self.start_button.rect.bottom + self.config.config['start_screen']['quit_button']['play_margin_top'], 'Quit', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30), self.stop_game)
 
+        game.buttons.add(self.start_button)
+        game.buttons.add(self.quit_button)
     
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.logo, self.logo_rect)
@@ -144,42 +191,10 @@ class StartState(GameState):
         self.quit_button.update()
 
     def start_game(self) -> None:
-        pass
-
-class Game:
-    def __init__(self, config: Config) -> None:
-        pygame.init()
-
-        self.config = config
-        self.screen = pygame.display.set_mode((self.config.config['screen']['width'], self.config.config['screen']['height']))
-        pygame.display.set_caption(self.config.config['screen']['title'])
-        self.clock = pygame.time.Clock()
-        self.running = True
-        self.state = StartState(self.config)
-
-        self.background = Background(config)
+        print("Start...")
     
-    def run(self) -> None:
-        while self.running:
-            self.clock.tick(self.config.config['screen']['fps'])
-            self.events()
-            self.update()
-            self.draw()
-    
-    def events(self) -> None:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-    
-    def update(self) -> None:
-        self.background.update()
-        self.state.update()
-    
-    def draw(self) -> None:
-        self.background.draw(self.screen)
-        self.state.draw(self.screen)
-        pygame.display.flip()
-
+    def stop_game(self) -> None:
+        print("Stop...")
 
 if __name__ == '__main__':
     config = Config()
