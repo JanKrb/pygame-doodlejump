@@ -1,7 +1,9 @@
 {
     "images": {
         "background": "background.png",
-        "logo": "logo.png"
+        "logo": "logo.png",
+        "menu_item_selected": "menu_unselected.png",
+        "menu_item_unselected": "menu_selected.png"
     },
     "screen": {
         "width": 532,
