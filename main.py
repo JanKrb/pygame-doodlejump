@@ -196,10 +196,39 @@ class StartState(GameState):
         self.quit_button.update()
 
     def start_game(self) -> None:
-        print("Start...")
+        game.state = MainGameState(self.config, game)
     
     def stop_game(self) -> None:
         print("Stop...")
+
+class MainGameState(GameState):
+    def __init__(self, config: Config, game: Game):
+        super().__init__(config, game)
+
+    def draw(self, screen):
+        pass
+
+    def update(self):
+        pass
+    
+    def keystroke_left(self):
+        print("Left Btn")
+    
+    def keystroke_right(self):
+        print("Right Btn")
+
+    def keystroke_space(self):
+        print("Space Btn")
+
+    def handle_events(self, event) -> None:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                self.keystroke_left()
+            elif event.key == pygame.K_RIGHT:
+                self.keystroke_right()
+            elif event.key == pygame.K_SPACE:
+                self.keystroke_space()
+    
 
 if __name__ == '__main__':
     config = Config()
