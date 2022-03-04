@@ -128,6 +128,8 @@ class Game:
     
     def events(self) -> None:
         for event in pygame.event.get():
+            self.state.handle_events(event)
+
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -152,6 +154,9 @@ class GameState:
         pass
     
     def update(self) -> None:
+        pass
+    
+    def handle_events(self, event) -> None:
         pass
 
 class StartState(GameState):
