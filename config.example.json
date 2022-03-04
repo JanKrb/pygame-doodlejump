@@ -28,5 +28,18 @@
         "quit_button": {
             "play_margin_top": 45
         }
+    },
+    "main_game": {
+        "jumper": {
+            "image": "jumper.png",
+            "width": 69,
+            "height": 67,
+            "position": {
+                "margin_left": 0,
+                "margin_bottom": 100,
+                "center_x": true,
+                "center_y": false
+            }
+        }
     }
 }

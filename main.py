@@ -201,15 +201,48 @@ class StartState(GameState):
     def stop_game(self) -> None:
         print("Stop...")
 
+class Jumper(pygame.sprite.Sprite):
+    def __init__(self, config: Config):
+        super().__init__()
+
+        self.config = config
+
+        self.image = pygame.image.load(os.path.join(Path.assets_images_path, self.config.config['main_game']['jumper']['image'])).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (self.config.config['main_game']['jumper']['width'], self.config.config['main_game']['jumper']['height']))
+        self.rect = self.image.get_rect()
+
+        center_x = self.config.config['main_game']['jumper']['position']['center_x']
+        center_y = self.config.config['main_game']['jumper']['position']['center_y']
+
+        if center_x:
+            self.rect.centerx = self.config.config['screen']['width'] / 2
+        else:
+            self.rect.x = self.config.config['main_game']['jumper']['position']['margin_left']
+        
+        if center_y:
+            self.rect.centery = self.config.config['screen']['height'] / 2
+        else:
+            self.rect.y = self.config.config['screen']['height'] - self.config.config['main_game']['jumper']['position']['margin_bottom']        
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        pass
+
 class MainGameState(GameState):
     def __init__(self, config: Config, game: Game):
         super().__init__(config, game)
 
+        self.config = config
+    
+        self.jumper = Jumper(self.config)
+
     def draw(self, screen):
-        pass
+        self.jumper.draw(screen)
 
     def update(self):
-        pass
+        self.jumper.update()
     
     def keystroke_left(self):
         print("Left Btn")
