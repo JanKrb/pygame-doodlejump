@@ -21,6 +21,9 @@
         "logo_size": {
             "width": 91,
             "height": 102
+        },
+        "play_button": {
+            "logo_margin_top": 100
         }
     }
 }

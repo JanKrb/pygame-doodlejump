@@ -130,7 +130,7 @@ class StartState(GameState):
             self.logo_rect.y = self.config.config['start_screen']['logo_position']['y']
         
 
-        self.start_button = Button(config, 250, 50, None, 150, 'Start Game', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
+        self.start_button = Button(config, 250, 50, None, self.logo_rect.bottom + self.config.config['start_screen']['play_button']['logo_margin_top'], 'Start Game', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
 
     
     def draw(self, screen: pygame.Surface) -> None:
