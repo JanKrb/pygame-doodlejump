@@ -104,16 +104,6 @@ class Button(pygame.sprite.Sprite):
         if self.hovered:
             self.click_callback()
 
-class GameState:
-    def __init__(self, config: Config) -> None:
-        self.config = config
-
-    def draw(self, screen: pygame.Surface) -> None:
-        pass
-    
-    def update(self) -> None:
-        pass
-
 class Game:
     def __init__(self, config: Config) -> None:
         pygame.init()
@@ -153,10 +143,20 @@ class Game:
         self.state.draw(self.screen)
         pygame.display.flip()
 
+class GameState:
+    def __init__(self, config: Config, game: Game) -> None:
+        self.config = config
+        self.game = game
+
+    def draw(self, screen: pygame.Surface) -> None:
+        pass
+    
+    def update(self) -> None:
+        pass
 
 class StartState(GameState):
     def __init__(self, config: Config, game: Game) -> None:
-        super().__init__(config)
+        super().__init__(config, game)
 
         self.logo = pygame.image.load(os.path.join(Path.assets_images_path, self.config.config['images']['logo'])).convert_alpha()
         self.logo = pygame.transform.scale(self.logo, (self.config.config['start_screen']['logo_size']['width'], self.config.config['start_screen']['logo_size']['height']))
