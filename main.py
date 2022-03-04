@@ -131,14 +131,17 @@ class StartState(GameState):
         
 
         self.start_button = Button(config, 250, 50, None, self.logo_rect.bottom + self.config.config['start_screen']['play_button']['logo_margin_top'], 'Start Game', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
+        self.quit_button = Button(config, 250, 50, None, self.start_button.rect.bottom + self.config.config['start_screen']['quit_button']['play_margin_top'], 'Quit', (0, 0, 0), pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30))
 
     
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.logo, self.logo_rect)
         self.start_button.draw(screen)
+        self.quit_button.draw(screen)
     
     def update(self) -> None:
         self.start_button.update()
+        self.quit_button.update()
 
     def start_game(self) -> None:
         pass
