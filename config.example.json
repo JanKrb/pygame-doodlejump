@@ -44,6 +44,12 @@
                 "width": 75,
                 "height": 13
             },
+            "jump": {
+                "height": 50,
+                "duration": 20,
+                "gravity": 4
+            }
+        },
         "platform": {
             "static": {
                 "image": "green.png"

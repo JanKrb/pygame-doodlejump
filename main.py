@@ -241,7 +241,7 @@ class StartState(GameState):
 
 
 class Jumper(pygame.sprite.Sprite):
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, platforms: pygame.sprite.Group) -> None:
         super().__init__()
 
         self.config = config
@@ -249,8 +249,11 @@ class Jumper(pygame.sprite.Sprite):
         self.image = pygame.image.load(
             os.path.join(Path.assets_images_path, self.config.config['main_game']['jumper']['image'])).convert_alpha()
         self.image = pygame.transform.scale(self.image, (
-        self.config.config['main_game']['jumper']['width'], self.config.config['main_game']['jumper']['height']))
+            self.config.config['main_game']['jumper']['width'], self.config.config['main_game']['jumper']['height']))
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+
+        self.platforms = platforms
 
         center_x = self.config.config['main_game']['jumper']['position']['center_x']
         center_y = self.config.config['main_game']['jumper']['position']['center_y']
@@ -265,6 +268,22 @@ class Jumper(pygame.sprite.Sprite):
         else:
             self.rect.y = self.config.config['screen']['height'] - \
                           self.config.config['main_game']['jumper']['position']['margin_bottom']
+
+        self.jump_offsets = list(range(10, 0, -1)) + list(range(0, -11, -1))
+        self.jump_offset = 0
+        self.jump_micro_timer = Timer(self.config.config['main_game']['jumper']['jump']['duration'], False)
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        if self.jump_micro_timer.is_next_stop_reached():
+            self.rect.y -= self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
+                self.jump_offset]
+            self.jump_offset += 1
+
+            if self.jump_offset >= len(self.jump_offsets):
+                self.jump_offset = 0
 
 
 class GreenPlatform(pygame.sprite.Sprite):
