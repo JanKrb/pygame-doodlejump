@@ -266,6 +266,28 @@ class Jumper(pygame.sprite.Sprite):
             self.rect.y = self.config.config['screen']['height'] - \
                           self.config.config['main_game']['jumper']['position']['margin_bottom']
 
+
+class GreenPlatform(pygame.sprite.Sprite):
+    def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
+        super().__init__()
+
+        self.config = config
+
+        self.image = pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                         self.config.config['main_game']['platform']['static']['image'])).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (width, height))
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+
+        if x is None:
+            self.rect.x = self.config.config['screen']['width'] / 2 - width / 2
+
+        if y is None:
+            self.rect.y = self.config.config['screen']['height'] / 2 - height / 2
+        else:
+            self.rect.y = self.config.config['screen']['height'] - y
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
