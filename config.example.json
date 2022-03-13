@@ -39,6 +39,19 @@
                 "margin_bottom": 100,
                 "center_x": true,
                 "center_y": false
+        "platform": {
+            "static": {
+                "image": "green.png"
+            },
+            "moving": {
+                "image": "blue.png",
+                "min_speed": 0.5,
+                "max_speed": 1.5
+            },
+            "breaking": {
+                "image": "red.png",
+                "animation_speed": 100,
+                "image_broken": "broken.png"
             }
         }
     }
