@@ -7,7 +7,6 @@ class Path:
     runtime_path = os.path.dirname(os.path.realpath(__file__))
 
     assets_path = os.path.join(runtime_path, 'assets')
-    assets_path = os.path.join(runtime_path, 'assets')
     assets_images_path = os.path.join(assets_path, 'images')
     assets_fonts_path = os.path.join(assets_path, 'fonts')
     assets_sounds_path = os.path.join(assets_path, 'sounds')
