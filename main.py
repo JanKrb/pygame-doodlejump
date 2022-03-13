@@ -269,7 +269,8 @@ class Jumper(pygame.sprite.Sprite):
             self.rect.y = self.config.config['screen']['height'] - \
                           self.config.config['main_game']['jumper']['position']['margin_bottom']
 
-        self.jump_offsets = list(range(10, 0, -1)) + list(range(0, -11, -1))
+        self.jump_offsets = list(range(10, 0, -1))
+        self.jumping = True
         self.jump_offset = 0
         self.jump_micro_timer = Timer(self.config.config['main_game']['jumper']['jump']['duration'], False)
 
@@ -277,12 +278,24 @@ class Jumper(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
     def update(self):
-        if self.jump_micro_timer.is_next_stop_reached():
+        if self.jump_micro_timer.is_next_stop_reached() and self.jumping:
             self.rect.y -= self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
                 self.jump_offset]
             self.jump_offset += 1
 
             if self.jump_offset >= len(self.jump_offsets):
+                self.jump_offset = 0
+                self.jumping = False
+
+        if not self.jumping:
+            collided_platforms = pygame.sprite.spritecollide(self, self.platforms, False, pygame.sprite.collide_mask)
+
+            if len(collided_platforms) <= 0:
+                self.rect.y += self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
+                    self.jump_offset]
+            else:
+                self.rect.y = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
+                self.jumping = True
                 self.jump_offset = 0
 
 
