@@ -301,13 +301,25 @@ class MainGameState(GameState):
 
         self.config = config
 
-        self.jumper = Jumper(self.config)
+        self.platforms = pygame.sprite.Group()
+
+        start_platform = GreenPlatform(self.config,
+                                       self.config.config['main_game']['jumper']['start_platform']['width'],
+                                       self.config.config['main_game']['jumper']['start_platform']['height'],
+                                       None,
+                                       self.config.config['main_game']['jumper']['position']['margin_bottom'] -
+                                       self.config.config['main_game']['jumper']['height'])
+        self.platforms.add(start_platform)
+
+        self.jumper = Jumper(self.config, self.platforms)
 
     def draw(self, screen):
         self.jumper.draw(screen)
+        self.platforms.draw(screen)
 
     def update(self):
         self.jumper.update()
+        self.platforms.update()
 
     def keystroke_left(self):
         print("Left Btn")

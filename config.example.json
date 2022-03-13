@@ -39,6 +39,11 @@
                 "margin_bottom": 100,
                 "center_x": true,
                 "center_y": false
+            },
+            "start_platform": {
+                "width": 75,
+                "height": 13
+            },
         "platform": {
             "static": {
                 "image": "green.png"
