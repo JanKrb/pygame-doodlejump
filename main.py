@@ -149,10 +149,10 @@ class Game:
 
     def run(self) -> None:
         while self.running:
-            self.clock.tick(self.config.config['screen']['fps'])
             self.events()
             self.update()
             self.draw()
+            self.delta_time = self.clock.tick(self.config.config['screen']['fps'])
 
     def events(self) -> None:
         for event in pygame.event.get():
