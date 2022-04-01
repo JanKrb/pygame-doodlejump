@@ -45,9 +45,9 @@
                 "height": 13
             },
             "jump": {
-                "height": 50,
-                "duration": 35,
-                "gravity": 3
+                "height": 500,
+                "duration": 50,
+                "gravity": 280
             }
         },
         "platform": {

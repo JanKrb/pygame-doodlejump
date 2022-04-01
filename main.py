@@ -140,6 +140,7 @@ class Game:
         pygame.display.set_caption(self.config.config['screen']['title'])
         self.clock = pygame.time.Clock()
         self.running = True
+        self.delta_time = 1.0 / self.config.config['screen']['fps']
 
         self.background = Background(config)
         self.buttons = pygame.sprite.Group()
@@ -280,7 +281,7 @@ class Jumper(pygame.sprite.Sprite):
     def update(self):
         if self.jump_micro_timer.is_next_stop_reached() and self.jumping:
             self.rect.y -= self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
-                self.jump_offset]
+                self.jump_offset] * game.delta_time
             self.jump_offset += 1
 
             if self.jump_offset >= len(self.jump_offsets):
@@ -292,7 +293,7 @@ class Jumper(pygame.sprite.Sprite):
 
             if len(collided_platforms) <= 0:
                 self.rect.y += self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
-                    self.jump_offset]
+                    self.jump_offset] * game.delta_time
             else:
                 self.rect.y = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
                 self.jumping = True
