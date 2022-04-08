@@ -418,8 +418,10 @@ class MainGameState(GameState):
     def regenerate_platforms(self):
         # Spawn new platforms
         # Delete old platforms
-        pass
-
+        for platform in self.platforms.sprites():
+            if platform.rect.top > self.config.config['screen']['height']:
+                self.platforms.remove(platform)
+        
     def init_gameover(self):
         if self.jumper.rect.top > self.config.config['screen']['height']:
             game.state = GameOverGameState(self.config, game)
