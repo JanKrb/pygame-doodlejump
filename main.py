@@ -302,11 +302,15 @@ class Jumper(pygame.sprite.Sprite):
                 self.position[1] = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
                 self.jumping = True
                 self.jump_offset = 0
+        
+        # TODO: Collision between jumper head and platform (jumping from below)
 
     def update(self, *args, **kwargs):
         self.jump()
 
-        if kwargs.get('move_left', False):
+        if kwargs.get('update_vp', False):
+            self.update_vp()
+        elif kwargs.get('move_left', False):
             self.move_left(stop=kwargs.get('stop', False))
         elif kwargs.get('move_right', False):
             self.move_right(stop=kwargs.get('stop', False))
@@ -337,6 +341,10 @@ class Jumper(pygame.sprite.Sprite):
     
     def shoot(self):
         print('shoot')
+    
+    def update_vp(self):
+        self.position[1] += self.config.config['main_game']['vp_scrollspeed']
+        self.rect.y = self.position[1]
 
 
 class GreenPlatform(pygame.sprite.Sprite):
@@ -363,8 +371,12 @@ class GreenPlatform(pygame.sprite.Sprite):
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-    def update(self):
-        pass
+    def update(self, *args, **kwargs):
+        if kwargs.get('update_vp', False):
+            self.update_vp()
+    
+    def update_vp(self):
+        self.rect.y += self.config.config['main_game']['vp_scrollspeed']
 
 
 class MainGameState(GameState):
@@ -381,6 +393,16 @@ class MainGameState(GameState):
                                        None,
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'])
+
+        for i in range(6):
+            test_platform = GreenPlatform(self.config,
+                                       self.config.config['main_game']['jumper']['start_platform']['width'],
+                                       self.config.config['main_game']['jumper']['start_platform']['height'],
+                                       None,
+                                       self.config.config['main_game']['jumper']['position']['margin_bottom'] -
+                                       self.config.config['main_game']['jumper']['height'] + 200 * i) 
+            self.platforms.add(test_platform)
+                                                                  
         self.platforms.add(start_platform)
 
         self.jumper = Jumper(self.config, self.platforms)
@@ -388,8 +410,22 @@ class MainGameState(GameState):
     def draw(self, screen):
         self.jumper.draw(screen)
         self.platforms.draw(screen)
+    
+
+    def move_viewport(self):
+        if self.jumper.rect.top < 0:
+            self.jumper.update(update_vp=True)
+            self.platforms.update(update_vp=True)
+
+    def regenerate_platforms(self):
+        # Spawn new platforms
+        # Delete old platforms
+        pass
 
     def update(self):
+        self.move_viewport()
+        self.regenerate_platforms()
+
         self.jumper.update()
         self.platforms.update()
 

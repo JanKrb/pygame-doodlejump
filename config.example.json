@@ -30,6 +30,7 @@
         }
     },
     "main_game": {
+        "vp_scrollspeed": 15,
         "jumper": {
             "image": "jumper.png",
             "width": 69,
