@@ -259,15 +259,17 @@ class Jumper(pygame.sprite.Sprite):
         center_x = self.config.config['main_game']['jumper']['position']['center_x']
         center_y = self.config.config['main_game']['jumper']['position']['center_y']
 
+        self.position = pygame.Vector2(0, 0)
+
         if center_x:
-            self.rect.centerx = self.config.config['screen']['width'] / 2
+            self.position[0] = self.config.config['screen']['width'] / 2
         else:
-            self.rect.x = self.config.config['main_game']['jumper']['position']['margin_left']
+            self.position[0] = self.config.config['main_game']['jumper']['position']['margin_left']
 
         if center_y:
-            self.rect.centery = self.config.config['screen']['height'] / 2
+            self.position[1] = self.config.config['screen']['height'] / 2
         else:
-            self.rect.y = self.config.config['screen']['height'] - \
+            self.position[1] = self.config.config['screen']['height'] - \
                           self.config.config['main_game']['jumper']['position']['margin_bottom']
 
         self.jump_offsets = list(range(10, 0, -1))
@@ -275,12 +277,14 @@ class Jumper(pygame.sprite.Sprite):
         self.jump_offset = 0
         self.jump_micro_timer = Timer(self.config.config['main_game']['jumper']['jump']['duration'], False)
 
+        self.speed_x = 0  # Left < 0, Right > 0
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-    def update(self):
+    def jump(self):
         if self.jump_micro_timer.is_next_stop_reached() and self.jumping:
-            self.rect.y -= self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
+            self.position[1] -= self.config.config['main_game']['jumper']['jump']['gravity_up'] * self.jump_offsets[
                 self.jump_offset] * game.delta_time
             self.jump_offset += 1
 
@@ -292,12 +296,47 @@ class Jumper(pygame.sprite.Sprite):
             collided_platforms = pygame.sprite.spritecollide(self, self.platforms, False, pygame.sprite.collide_mask)
 
             if len(collided_platforms) <= 0:
-                self.rect.y += self.config.config['main_game']['jumper']['jump']['gravity'] * self.jump_offsets[
+                self.position[1] += self.config.config['main_game']['jumper']['jump']['gravity_down'] * self.jump_offsets[
                     self.jump_offset] * game.delta_time
             else:
-                self.rect.y = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
+                self.position[1] = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
                 self.jumping = True
                 self.jump_offset = 0
+
+    def update(self, *args, **kwargs):
+        self.jump()
+
+        if kwargs.get('move_left', False):
+            self.move_left(stop=kwargs.get('stop', False))
+        elif kwargs.get('move_right', False):
+            self.move_right(stop=kwargs.get('stop', False))
+        elif kwargs.get('shoot', False):
+            self.shoot()
+        
+        self.move()
+    
+    def move(self):
+        self.position[0] += self.speed_x * game.delta_time
+
+        self.rect.x = self.position[0]
+        self.rect.y = self.position[1]
+    
+    def move_left(self, *args, **kwargs):
+        if kwargs.get('stop', False):
+            self.speed_x = 0
+            return
+        
+        self.speed_x = -self.config.config['main_game']['jumper']['move_x_speed']
+
+    def move_right(self, *args, **kwargs):
+        if kwargs.get('stop', False):
+            self.speed_x = 0
+            return
+        
+        self.speed_x = self.config.config['main_game']['jumper']['move_x_speed']
+    
+    def shoot(self):
+        print('shoot')
 
 
 class GreenPlatform(pygame.sprite.Sprite):
@@ -354,14 +393,20 @@ class MainGameState(GameState):
         self.jumper.update()
         self.platforms.update()
 
-    def keystroke_left(self):
-        print("Left Btn")
+    def keystroke_left(self, *args, **kwargs):
+        if kwargs.get('stop', False):
+            self.jumper.update(move_left=True, stop=True)
+        else:
+            self.jumper.update(move_left=True)
 
-    def keystroke_right(self):
-        print("Right Btn")
+    def keystroke_right(self, *args, **kwargs):
+        if kwargs.get('stop', False):
+            self.jumper.update(move_right=True, stop=True)
+        else:
+            self.jumper.update(move_right=True)
 
     def keystroke_space(self):
-        print("Space Btn")
+        self.jumper.update(shoot=True)
 
     def handle_events(self, event) -> None:
         if event.type == pygame.KEYDOWN:
@@ -371,6 +416,13 @@ class MainGameState(GameState):
                 self.keystroke_right()
             elif event.key == pygame.K_SPACE:
                 self.keystroke_space()
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                self.keystroke_left(stop=True)
+            elif event.key == pygame.K_RIGHT:
+                self.keystroke_right(stop=True)
+            elif event.key == pygame.K_SPACE:
+                self.keystroke_space(stop=True)
 
 
 if __name__ == '__main__':

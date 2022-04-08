@@ -49,6 +49,7 @@
                 "duration": 50,
                 "gravity": 280
             }
+            "move_x_speed": 0.5
         },
         "platform": {
             "static": {
