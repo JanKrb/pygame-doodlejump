@@ -303,8 +303,6 @@ class Jumper(pygame.sprite.Sprite):
                 self.jumping = True
                 self.jump_offset = 0
         
-        # TODO: Collision between jumper head and platform (jumping from below)
-
     def update(self, *args, **kwargs):
         self.jump()
 
