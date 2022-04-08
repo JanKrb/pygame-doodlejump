@@ -45,10 +45,11 @@
                 "height": 13
             },
             "jump": {
-                "height": 500,
-                "duration": 50,
-                "gravity": 280
-            }
+                "height": 0.6,
+                "duration": 30,
+                "gravity_up": 0.2,
+                "gravity_down": 0.1
+            },
             "move_x_speed": 0.5
         },
         "platform": {
