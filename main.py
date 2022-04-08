@@ -422,9 +422,14 @@ class MainGameState(GameState):
         # Delete old platforms
         pass
 
+    def init_gameover(self):
+        if self.jumper.rect.top > self.config.config['screen']['height']:
+            game.state = GameOverGameState(self.config, game)
+
     def update(self):
         self.move_viewport()
         self.regenerate_platforms()
+        self.init_gameover()
 
         self.jumper.update()
         self.platforms.update()
@@ -460,6 +465,57 @@ class MainGameState(GameState):
             elif event.key == pygame.K_SPACE:
                 self.keystroke_space(stop=True)
 
+class GameOverGameState(GameState):
+    def __init__(self, config: Config, game: Game) -> None:
+        self.config = config
+        self.game = game
+
+        self.logo = pygame.image.load(
+            os.path.join(Path.assets_images_path, self.config.config['images']['logo'])).convert_alpha()
+        self.logo = pygame.transform.scale(self.logo, (self.config.config['start_screen']['logo_size']['width'],
+                                                       self.config.config['start_screen']['logo_size']['height']))
+        self.logo_rect = self.logo.get_rect()
+        center_logo_x = self.config.config['start_screen']['logo_position']['center_x']
+        center_logo_y = self.config.config['start_screen']['logo_position']['center_y']
+
+        if center_logo_x:
+            self.logo_rect.centerx = self.config.config['screen']['width'] / 2
+        else:
+            self.logo_rect.x = self.config.config['start_screen']['logo_position']['x']
+
+        if center_logo_y:
+            self.logo_rect.centery = self.config.config['screen']['height'] / 2
+        else:
+            self.logo_rect.y = self.config.config['start_screen']['logo_position']['y']
+        
+        self.restart_button = Button(config, 250, 50, None,
+                                   self.logo_rect.bottom + self.config.config['start_screen']['play_button'][
+                                       'logo_margin_top'], 'Retry', (0, 0, 0),
+                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
+                                   self.restart_game)
+        self.quit_button = Button(config, 250, 50, None,
+                                  self.restart_button.rect.bottom + self.config.config['start_screen']['quit_button'][
+                                      'play_margin_top'], 'Quit', (0, 0, 0),
+                                  pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
+                                  self.stop_game)
+
+        game.buttons.add(self.restart_button)
+        game.buttons.add(self.quit_button)
+
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.logo, self.logo_rect)
+        self.restart_button.draw(screen)
+        self.quit_button.draw(screen)
+
+    def update(self) -> None:
+        self.restart_button.update()
+        self.quit_button.update()
+
+    def restart_game(self):
+        game.state = MainGameState(self.config, game)
+    
+    def stop_game(self):
+        self.game.running = False
 
 if __name__ == '__main__':
     config = Config()
