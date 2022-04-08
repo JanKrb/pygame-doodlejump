@@ -417,6 +417,10 @@ class MainGameState(GameState):
 
     def regenerate_platforms(self):
         # Spawn new platforms
+        if len(self.platforms) < self.config.config['main_game']['platform']['max_platforms']:
+            # New platform
+            pass
+
         # Delete old platforms
         for platform in self.platforms.sprites():
             if platform.rect.top > self.config.config['screen']['height']:
