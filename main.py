@@ -237,11 +237,22 @@ class StartState(GameState):
         game.buttons.add(self.quit_button)
         game.buttons.add(self.music_button)
 
+        font = pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30)
+    
+        highscore_obj = Highscore(config)
+        highscore = highscore_obj.load_highscore()
+
+        self.highscore_text = font.render(f'Highscore: {round(highscore)}', True, (0, 0, 0))
+        self.highscore_text_rect = self.highscore_text.get_rect()
+        self.highscore_text_rect.centerx = self.config.config['screen']['width'] / 2
+        self.highscore_text_rect.centery = self.music_button.rect.bottom + 100
+
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.logo, self.logo_rect)
         self.start_button.draw(screen)
         self.quit_button.draw(screen)
         self.music_button.draw(screen)
+        screen.blit(self.highscore_text, self.highscore_text_rect)
 
     def update(self) -> None:
         self.start_button.update()
