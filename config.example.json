@@ -81,7 +81,15 @@
                 "animation_speed": 100,
                 "image_broken": "broken.png"
             },
-            "max_platforms": 10
+            "max_platforms": 25,
+            "width": 75,
+            "height": 13,
+            "min_distance": 500,
+            "max_depth": 10,
+            "platform_distance": {
+                "min": 100,
+                "max": 50
+            }
         }
     }
 }
