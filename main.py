@@ -1,7 +1,7 @@
 import os
 import json
+import random
 import pygame
-
 
 class Path:
     runtime_path = os.path.dirname(os.path.realpath(__file__))
@@ -344,17 +344,17 @@ class Jumper(pygame.sprite.Sprite):
         self.position[1] += self.config.config['main_game']['vp_scrollspeed']
         self.rect.y = self.position[1]
 
-
-class GreenPlatform(pygame.sprite.Sprite):
-    def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None) -> None:
         super().__init__()
 
         self.config = config
+        self.size = (width, height)
 
         self.image = pygame.image.load(
             os.path.join(Path.assets_images_path,
                          self.config.config['main_game']['platform']['static']['image'])).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (width, height))
+        self.image = pygame.transform.scale(self.image, self.size)
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
 
@@ -365,6 +365,14 @@ class GreenPlatform(pygame.sprite.Sprite):
             self.rect.y = self.config.config['screen']['height'] / 2 - height / 2
         else:
             self.rect.y = self.config.config['screen']['height'] - y
+    
+    def reload_image(self, img: pygame.Surface):
+        old_pos = self.rect.center
+        self.image = img
+        self.image = pygame.transform.scale(self.image, self.size)
+        self.rect = self.image.get_rect()
+        self.rect.center = old_pos
+        self.mask = pygame.mask.from_surface(self.image)
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -375,6 +383,10 @@ class GreenPlatform(pygame.sprite.Sprite):
     
     def update_vp(self):
         self.rect.y += self.config.config['main_game']['vp_scrollspeed']
+
+class GreenPlatform(Platform):
+    def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
+        super().__init__(config, width, height, x, y)
 
 
 class MainGameState(GameState):
