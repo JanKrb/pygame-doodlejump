@@ -509,6 +509,32 @@ class MainGameState(GameState):
             elif event.key == pygame.K_SPACE:
                 self.keystroke_space(stop=True)
 
+class Highscore:
+    def __init__(self, config: Config):
+        self.config = config
+        self.highscore_file = os.path.join(Path.runtime_path, self.config.config['highscore']['file'])
+        self.highscore = self.load_highscore()
+    
+    def load_highscore(self) -> int:
+        with open(self.highscore_file, 'r') as f:
+            highscores = json.load(f)
+            highscores.sort(reverse=True)
+            
+            return highscores[0]
+    
+    def write_highscore(self, points) -> int:
+        with open(self.highscore_file, 'r+') as f:
+            highscores = json.load(f)
+            highscores.append(points)
+            highscores.sort(reverse=True)
+            highscores = highscores[:self.config.config['highscore']['max_highscores']]
+
+            highscores = json.dumps(highscores)
+            f.seek(0)
+            f.write(highscores)
+            f.close()
+        return self.load_highscore()
+
 class GameOverGameState(GameState):
     def __init__(self, config: Config, game: Game) -> None:
         self.config = config
@@ -546,11 +572,22 @@ class GameOverGameState(GameState):
         game.buttons.add(self.restart_button)
         game.buttons.add(self.quit_button)
 
+        font = pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30)
+
+        highscore_obj = Highscore(config)
+        highscore = highscore_obj.write_highscore(self.points)
+
+        self.highscore_text = font.render(f'Highscore: {round(highscore)}', True, (0, 0, 0))
+        self.highscore_text_rect = self.highscore_text.get_rect()
+        self.highscore_text_rect.centerx = self.config.config['screen']['width'] / 2
+        self.highscore_text_rect.centery = self.points_text_rect.bottom + 50
+
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.logo, self.logo_rect)
         self.restart_button.draw(screen)
         self.quit_button.draw(screen)
 
+        screen.blit(self.highscore_text, self.highscore_text_rect)
     def update(self) -> None:
         self.restart_button.update()
         self.quit_button.update()
