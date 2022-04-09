@@ -417,6 +417,8 @@ class MainGameState(GameState):
         self.config = config
 
         self.platforms = pygame.sprite.Group()
+        self.points = 0
+        self.vp_offset = 0
 
         start_platform = GreenPlatform(self.config,
                                        self.config.config['main_game']['jumper']['start_platform']['width'],
@@ -425,7 +427,7 @@ class MainGameState(GameState):
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'])
 
-        for i in range(2):
+        for i in range(16):
             test_platform = GreenPlatform(self.config,
                                        self.config.config['main_game']['jumper']['start_platform']['width'],
                                        self.config.config['main_game']['jumper']['start_platform']['height'],
@@ -433,6 +435,7 @@ class MainGameState(GameState):
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'] + 200 * i) 
             self.platforms.add(test_platform)
+        """
         test_platform = BluePlatform(self.config,
                                        self.config.config['main_game']['jumper']['start_platform']['width'],
                                        self.config.config['main_game']['jumper']['start_platform']['height'],
@@ -440,20 +443,31 @@ class MainGameState(GameState):
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'] + 200 * 2) 
         self.platforms.add(test_platform)
-                                                                  
+                  """                                                
         self.platforms.add(start_platform)
 
         self.jumper = Jumper(self.config, self.platforms)
 
+        # Points
+        self.render_points()
+    
+    def render_points(self):
+        font = pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30)
+        self.points_text = font.render(f"Points: {round(self.points)}", True, (0, 0, 0))
+        self.points_text_rect = self.points_text.get_rect()
+        self.points_text_rect.top = self.config.config['screen']['height'] - self.points_text_rect.height - 15
+        self.points_text_rect.right = self.config.config['screen']['width'] - 15
+
     def draw(self, screen):
         self.jumper.draw(screen)
         self.platforms.draw(screen)
-    
+        screen.blit(self.points_text, self.points_text_rect)
 
     def move_viewport(self):
         if self.jumper.rect.top < 0:
             self.jumper.update(update_vp=True)
             self.platforms.update(update_vp=True)
+            self.vp_offset += self.config.config['main_game']['vp_scrollspeed']
 
     def regenerate_platforms(self):
         # Spawn new platforms
@@ -468,7 +482,7 @@ class MainGameState(GameState):
         
     def init_gameover(self):
         if self.jumper.rect.top > self.config.config['screen']['height']:
-            game.state = GameOverGameState(self.config, game)
+            game.state = GameOverGameState(self.config, game, self.points)
 
     def update(self):
         self.move_viewport()
@@ -477,6 +491,10 @@ class MainGameState(GameState):
 
         self.jumper.update()
         self.platforms.update()
+
+        # Get points
+        self.points = max(self.points, (self.vp_offset + self.jumper.rect.bottom) / 100)
+        self.render_points()
 
     def keystroke_left(self, *args, **kwargs):
         if kwargs.get('stop', False):
@@ -536,9 +554,10 @@ class Highscore:
         return self.load_highscore()
 
 class GameOverGameState(GameState):
-    def __init__(self, config: Config, game: Game) -> None:
+    def __init__(self, config: Config, game: Game, points: float) -> None:
         self.config = config
         self.game = game
+        self.points = points
 
         self.logo = pygame.image.load(
             os.path.join(Path.assets_images_path, self.config.config['images']['logo'])).convert_alpha()
@@ -573,6 +592,10 @@ class GameOverGameState(GameState):
         game.buttons.add(self.quit_button)
 
         font = pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30)
+        self.points_text = font.render(f'Points: {round(self.points)}', True, (0, 0, 0))
+        self.points_text_rect = self.points_text.get_rect()
+        self.points_text_rect.centerx = self.config.config['screen']['width'] / 2
+        self.points_text_rect.centery = self.quit_button.rect.bottom + 100
 
         highscore_obj = Highscore(config)
         highscore = highscore_obj.write_highscore(self.points)
@@ -587,7 +610,9 @@ class GameOverGameState(GameState):
         self.restart_button.draw(screen)
         self.quit_button.draw(screen)
 
+        screen.blit(self.points_text, self.points_text_rect)
         screen.blit(self.highscore_text, self.highscore_text_rect)
+
     def update(self) -> None:
         self.restart_button.update()
         self.quit_button.update()
