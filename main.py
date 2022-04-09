@@ -388,6 +388,27 @@ class GreenPlatform(Platform):
     def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
         super().__init__(config, width, height, x, y)
 
+class BluePlatform(Platform):
+    def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
+        super().__init__(config, width, height, x, y)
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                         self.config.config['main_game']['platform']['moving']['image'])).convert_alpha())
+            
+
+        self.moving_speed = random.uniform(
+            self.config.config['main_game']['platform']['moving']['min_speed'],
+            self.config.config['main_game']['platform']['moving']['max_speed']
+        )
+        self.moving_direction = -1 # < 0 left, > 0 right
+    
+    def update(self, *args, **kwargs):
+        # Change direction
+        if self.rect.x <= 0 or self.rect.x >= self.config.config['screen']['width'] - self.rect.width:
+            self.moving_direction *= -1
+        
+        # Move
+        self.rect.x += self.moving_direction * self.moving_speed * game.delta_time
 
 class MainGameState(GameState):
     def __init__(self, config: Config, game: Game):
@@ -404,7 +425,7 @@ class MainGameState(GameState):
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'])
 
-        for i in range(6):
+        for i in range(2):
             test_platform = GreenPlatform(self.config,
                                        self.config.config['main_game']['jumper']['start_platform']['width'],
                                        self.config.config['main_game']['jumper']['start_platform']['height'],
@@ -412,6 +433,13 @@ class MainGameState(GameState):
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'] + 200 * i) 
             self.platforms.add(test_platform)
+        test_platform = BluePlatform(self.config,
+                                       self.config.config['main_game']['jumper']['start_platform']['width'],
+                                       self.config.config['main_game']['jumper']['start_platform']['height'],
+                                       None,
+                                       self.config.config['main_game']['jumper']['position']['margin_bottom'] -
+                                       self.config.config['main_game']['jumper']['height'] + 200 * 2) 
+        self.platforms.add(test_platform)
                                                                   
         self.platforms.add(start_platform)
 

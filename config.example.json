@@ -59,8 +59,8 @@
             },
             "moving": {
                 "image": "blue.png",
-                "min_speed": 0.5,
-                "max_speed": 1.5
+                "min_speed": 0.1,
+                "max_speed": 0.4
             },
             "breaking": {
                 "image": "red.png",
