@@ -1,6 +1,7 @@
 import os
 import json
 import random
+import math
 import pygame
 
 class Path:
@@ -381,6 +382,8 @@ class Platform(pygame.sprite.Sprite):
 
         if x is None:
             self.rect.x = self.config.config['screen']['width'] / 2 - width / 2
+        else:
+            self.rect.x = x
 
         if y is None:
             self.rect.y = self.config.config['screen']['height'] / 2 - height / 2
@@ -447,27 +450,11 @@ class MainGameState(GameState):
                                        None,
                                        self.config.config['main_game']['jumper']['position']['margin_bottom'] -
                                        self.config.config['main_game']['jumper']['height'])
-
-        for i in range(16):
-            test_platform = GreenPlatform(self.config,
-                                       self.config.config['main_game']['jumper']['start_platform']['width'],
-                                       self.config.config['main_game']['jumper']['start_platform']['height'],
-                                       None,
-                                       self.config.config['main_game']['jumper']['position']['margin_bottom'] -
-                                       self.config.config['main_game']['jumper']['height'] + 200 * i) 
-            self.platforms.add(test_platform)
-        """
-        test_platform = BluePlatform(self.config,
-                                       self.config.config['main_game']['jumper']['start_platform']['width'],
-                                       self.config.config['main_game']['jumper']['start_platform']['height'],
-                                       None,
-                                       self.config.config['main_game']['jumper']['position']['margin_bottom'] -
-                                       self.config.config['main_game']['jumper']['height'] + 200 * 2) 
-        self.platforms.add(test_platform)
-                  """                                                
+                                          
         self.platforms.add(start_platform)
 
         self.jumper = Jumper(self.config, self.platforms)
+        self.regenerate_platforms(on_boot=True)
 
         # Points
         self.render_points()
@@ -489,12 +476,33 @@ class MainGameState(GameState):
             self.jumper.update(update_vp=True)
             self.platforms.update(update_vp=True)
             self.vp_offset += self.config.config['main_game']['vp_scrollspeed']
+    
+    def generate_platform_type(self):
+        platforms = [BluePlatform]
+        [platforms.append(GreenPlatform) for _ in range(10)]
 
-    def regenerate_platforms(self):
+        return random.choice(platforms)
+
+    def regenerate_platforms(self, *args, **kwargs):
         # Spawn new platforms
         if len(self.platforms) < self.config.config['main_game']['platform']['max_platforms']:
-            # New platform
-            pass
+            get_highest_platform = min([(v, v.rect.y) for v in self.platforms.sprites()], key=lambda x: x[1])[0]
+            random_position = (
+                random.randint(0, self.config.config['screen']['width'] - self.config.config['main_game']['platform']['width']),
+                self.config.config['screen']['height'] - get_highest_platform.rect.centery + random.randint(
+                    self.config.config['main_game']['platform']['platform_distance']['max'],
+                    self.config.config['main_game']['platform']['platform_distance']['min']
+                )
+            )
+
+            random_platform = self.generate_platform_type()
+
+            new_platform = random_platform(self.config,
+                                           self.config.config['main_game']['platform']['width'],
+                                           self.config.config['main_game']['platform']['height'],
+                                           random_position[0],
+                                           random_position[1])
+            self.platforms.add(new_platform)
 
         # Delete old platforms
         for platform in self.platforms.sprites():
