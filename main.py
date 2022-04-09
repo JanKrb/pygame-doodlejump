@@ -539,6 +539,9 @@ class MainGameState(GameState):
 
     def keystroke_space(self):
         self.jumper.update(shoot=True)
+    
+    def pause(self):
+        game.state = PauseGameState(self.config, self.game, self)
 
     def handle_events(self, event) -> None:
         if event.type == pygame.KEYDOWN:
@@ -548,6 +551,8 @@ class MainGameState(GameState):
                 self.keystroke_right()
             elif event.key == pygame.K_SPACE:
                 self.keystroke_space()
+            elif event.key == pygame.K_p:
+                self.pause()
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 self.keystroke_left(stop=True)
@@ -645,6 +650,92 @@ class GameOverGameState(GameState):
     def update(self) -> None:
         self.restart_button.update()
         self.quit_button.update()
+
+    def restart_game(self):
+        game.state = MainGameState(self.config, game)
+    
+    def stop_game(self):
+        self.game.running = False
+    
+class PauseGameState(GameState):
+    def __init__(self, config: Config, game: Game, game_snapshot: MainGameState) -> None:
+        self.config = config
+        self.game = game
+        self.game_snapshot = game_snapshot
+
+        self.logo = pygame.image.load(
+            os.path.join(Path.assets_images_path, self.config.config['images']['logo'])).convert_alpha()
+        self.logo = pygame.transform.scale(self.logo, (self.config.config['start_screen']['logo_size']['width'],
+                                                       self.config.config['start_screen']['logo_size']['height']))
+        self.logo_rect = self.logo.get_rect()
+        center_logo_x = self.config.config['start_screen']['logo_position']['center_x']
+        center_logo_y = self.config.config['start_screen']['logo_position']['center_y']
+
+        if center_logo_x:
+            self.logo_rect.centerx = self.config.config['screen']['width'] / 2
+        else:
+            self.logo_rect.x = self.config.config['start_screen']['logo_position']['x']
+
+        if center_logo_y:
+            self.logo_rect.centery = self.config.config['screen']['height'] / 2
+        else:
+            self.logo_rect.y = self.config.config['start_screen']['logo_position']['y']
+        
+        self.unpause_button = Button(config, 250, 50, None,
+                                   self.logo_rect.bottom + self.config.config['start_screen']['play_button'][
+                                       'logo_margin_top'], 'Unpause', (0, 0, 0),
+                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
+                                   self.unpause)
+        self.restart_button = Button(config, 250, 50, None,
+                                   self.unpause_button.rect.bottom + self.config.config['start_screen']['quit_button'][
+                                       'play_margin_top'], 'Restart', (0, 0, 0),
+                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
+                                   self.restart_game)
+        self.quit_button = Button(config, 250, 50, None,
+                                  self.restart_button.rect.bottom + self.config.config['start_screen']['quit_button'][
+                                      'play_margin_top'], 'Quit', (0, 0, 0),
+                                  pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
+                                  self.stop_game)
+
+        game.buttons.add(self.restart_button)
+        game.buttons.add(self.quit_button)
+        game.buttons.add(self.unpause_button)
+
+        font = pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30)
+        self.points_text = font.render(f'Points: {round(game_snapshot.points)}', True, (0, 0, 0))
+        self.points_text_rect = self.points_text.get_rect()
+        self.points_text_rect.centerx = self.config.config['screen']['width'] / 2
+        self.points_text_rect.centery = self.quit_button.rect.bottom + 100
+
+        highscore_obj = Highscore(config)
+        highscore = highscore_obj.write_highscore(game_snapshot.points)
+
+        self.highscore_text = font.render(f'Highscore: {round(highscore)}', True, (0, 0, 0))
+        self.highscore_text_rect = self.highscore_text.get_rect()
+        self.highscore_text_rect.centerx = self.config.config['screen']['width'] / 2
+        self.highscore_text_rect.centery = self.points_text_rect.bottom + 50
+
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.logo, self.logo_rect)
+        self.restart_button.draw(screen)
+        self.quit_button.draw(screen)
+        self.unpause_button.draw(screen)
+
+        screen.blit(self.points_text, self.points_text_rect)
+        screen.blit(self.highscore_text, self.highscore_text_rect)
+
+    def update(self) -> None:
+        self.restart_button.update()
+        self.quit_button.update()
+        self.unpause_button.update()
+    
+    def handle_events(self, event) -> None:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:
+                self.unpause()
+
+    def unpause(self):
+        game.state = self.game_snapshot
 
     def restart_game(self):
         game.state = MainGameState(self.config, game)
