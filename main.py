@@ -226,18 +226,26 @@ class StartState(GameState):
                                       'play_margin_top'], 'Quit', (0, 0, 0),
                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
                                   self.stop_game)
+        self.music_button = Button(config, 250, 50, None,
+                                  self.quit_button.rect.bottom + self.config.config['start_screen']['music_button'][
+                                      'quit_margin_top'], 'Toggle Music', (0, 0, 0),
+                                  pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
+                                  self.toggle_music)
 
         game.buttons.add(self.start_button)
         game.buttons.add(self.quit_button)
+        game.buttons.add(self.music_button)
 
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.logo, self.logo_rect)
         self.start_button.draw(screen)
         self.quit_button.draw(screen)
+        self.music_button.draw(screen)
 
     def update(self) -> None:
         self.start_button.update()
         self.quit_button.update()
+        self.music_button.update()
 
     def start_game(self) -> None:
         game.state = MainGameState(self.config, game)
@@ -245,6 +253,11 @@ class StartState(GameState):
     def stop_game(self) -> None:
         self.game.running = False
 
+    def toggle_music(self) -> None:
+        if pygame.mixer.Channel(0).get_busy():
+            pygame.mixer.Channel(0).stop()
+        else:
+            pygame.mixer.Channel(0).play(self.game.background_music, loops=-1)
 
 class Jumper(pygame.sprite.Sprite):
     def __init__(self, config: Config, platforms: pygame.sprite.Group) -> None:
