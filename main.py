@@ -320,6 +320,9 @@ class Jumper(pygame.sprite.Sprite):
                 self.position[1] = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
                 self.jumping = True
                 self.jump_offset = 0
+
+                jump_sound = pygame.mixer.Sound(os.path.join(Path.assets_sounds_path, self.config.config['sounds']['jump']))
+                jump_sound.play()
         
     def update(self, *args, **kwargs):
         self.jump()

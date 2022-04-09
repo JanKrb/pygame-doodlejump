@@ -16,6 +16,12 @@
         "show_count": 3,
         "max_highscores": 10
     },
+    "sounds": {
+        "background": "background.mp3",
+        "jump": "jump.wav",
+        "game_over": "game_over.wav",
+        "volume": 0.25
+    },
     "start_screen": {
         "logo_position": {
             "x": 0,
@@ -32,6 +38,9 @@
         },
         "quit_button": {
             "play_margin_top": 45
+        },
+        "music_button": {
+            "quit_margin_top": 125
         }
     },
     "main_game": {
