@@ -329,6 +329,20 @@ class Jumper(pygame.sprite.Sprite):
                 self.position[1] += self.config.config['main_game']['jumper']['jump']['gravity_down'] * self.jump_offsets[
                     self.jump_offset] * game.delta_time
             else:
+                can_bounce = False
+                for platform in collided_platforms:
+                    if platform.bouncable:
+                        can_bounce = True
+                        break
+                
+                if not can_bounce:
+                    self.position[1] += self.config.config['main_game']['jumper']['jump']['gravity_down'] * self.jump_offsets[
+                    self.jump_offset] * game.delta_time
+                    return
+                
+                for platform in collided_platforms:
+                    platform.update(bounce=True)
+                
                 self.position[1] = collided_platforms[0].rect.top - self.rect.height  # Teleport jumper on top of platform, it doesn't glitch inside
                 self.jumping = True
                 self.jump_offset = 0
@@ -390,6 +404,7 @@ class Platform(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, self.size)
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
+        self.bouncable = True
 
         if x is None:
             self.rect.x = self.config.config['screen']['width'] / 2 - width / 2
@@ -415,9 +430,14 @@ class Platform(pygame.sprite.Sprite):
     def update(self, *args, **kwargs):
         if kwargs.get('update_vp', False):
             self.update_vp()
+        if kwargs.get('bounce', False):
+            self.bounced()
     
     def update_vp(self):
         self.rect.y += self.config.config['main_game']['vp_scrollspeed']
+    
+    def bounced(self):
+        pass
 
 class GreenPlatform(Platform):
     def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
@@ -444,6 +464,23 @@ class BluePlatform(Platform):
         
         # Move
         self.rect.x += self.moving_direction * self.moving_speed * game.delta_time
+
+class BrownPlatform(Platform):
+    def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
+        super().__init__(config, width, height, x, y)
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                         self.config.config['main_game']['platform']['breaking']['image'])).convert_alpha())
+        self.bouncable = True
+    
+    def bounced(self):
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                         self.config.config['main_game']['platform']['breaking']['image_broken'])).convert_alpha())
+        self.bouncable = False
+
+        break_sound = pygame.mixer.Sound(os.path.join(Path.assets_sounds_path, self.config.config['sounds']['platform_break']))
+        break_sound.play()        
 
 class MainGameState(GameState):
     def __init__(self, config: Config, game: Game):
@@ -489,7 +526,7 @@ class MainGameState(GameState):
             self.vp_offset += self.config.config['main_game']['vp_scrollspeed']
     
     def generate_platform_type(self):
-        platforms = [BluePlatform]
+        platforms = [BluePlatform, BluePlatform, BrownPlatform]
         [platforms.append(GreenPlatform) for _ in range(10)]
 
         return random.choice(platforms)

@@ -19,6 +19,7 @@
     "sounds": {
         "background": "background.mp3",
         "jump": "jump.wav",
+        "platform_break": "platform_break.mp3",
         "game_over": "game_over.wav",
         "volume": 0.25
     },
@@ -79,7 +80,7 @@
             "breaking": {
                 "image": "red.png",
                 "animation_speed": 100,
-                "image_broken": "broken.png"
+                "image_broken": "red2.png"
             },
             "max_platforms": 25,
             "width": 75,
