@@ -238,7 +238,7 @@ class StartState(GameState):
         game.state = MainGameState(self.config, game)
 
     def stop_game(self) -> None:
-        print("Stop...")
+        self.game.running = False
 
 
 class Jumper(pygame.sprite.Sprite):
