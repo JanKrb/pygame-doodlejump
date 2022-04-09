@@ -147,6 +147,11 @@ class Game:
 
         self.state = StartState(self.config, self)
 
+        self.background_music = pygame.mixer.Sound(os.path.join(Path.assets_sounds_path, self.config.config['sounds']['background']))
+        self.volume = self.config.config['sounds']['volume']
+        pygame.mixer.Channel(0).set_volume(self.volume)
+        pygame.mixer.Channel(0).play(self.background_music, loops=-1)
+
     def run(self) -> None:
         while self.running:
             self.events()
