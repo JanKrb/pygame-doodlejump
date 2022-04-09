@@ -11,6 +11,11 @@
         "title": "Doodle Jump",
         "fps": 60
     },
+    "highscore": {
+        "file": "gamedata.json",
+        "show_count": 3,
+        "max_highscores": 10
+    },
     "start_screen": {
         "logo_position": {
             "x": 0,
