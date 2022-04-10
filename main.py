@@ -469,6 +469,11 @@ class Jumper(pygame.sprite.Sprite):
     
     def move(self):
         self.position[0] += self.speed_x * game.delta_time
+        
+        if self.position[0] < 0:
+            self.position[0] = self.config.config['screen']['width']
+        elif self.position[0] > self.config.config['screen']['width']:
+            self.position[0] = 0
 
         self.rect.x = self.position[0]
         self.rect.y = self.position[1]
