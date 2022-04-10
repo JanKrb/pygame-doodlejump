@@ -275,6 +275,69 @@ class StartState(GameState):
         else:
             pygame.mixer.Channel(0).play(self.game.background_music, loops=-1)
 
+class Monster(pygame.sprite.Sprite):
+    def __init__(self, config: Config, game: Game, x: int, y: int) -> None:
+        super().__init__()
+
+        self.config = config
+        self.game = game
+        
+        self.image = pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                         self.config.config['main_game']['platform']['static']['image'])).convert_alpha()
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        
+        self.rect.centerx = x
+        self.rect.bottom = y - 5
+        self.position = pygame.Vector2(self.rect.centerx, self.rect.bottom)
+    
+    def reload_image(self, img: pygame.Surface):
+        old_pos = self.rect.center
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.center = old_pos
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self, *args, **kwargs):
+        if kwargs.get('update_vp', False):
+            self.update_vp()
+    
+    def update_vp(self):
+        self.position[1] += self.config.config['main_game']['vp_scrollspeed']
+        self.rect.bottom = self.position[1]
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.image, self.rect)
+    
+class MonsterBlue(Monster):
+    def __init__(self, config: Config, game: Game, x: int, y: int) -> None:
+        super().__init__(config, game, x, y)
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                            self.config.config['main_game']['monsters']['blue']['image'])).convert_alpha())
+
+class MonsterRed(Monster):
+    def __init__(self, config: Config, game: Game, x: int, y: int) -> None:
+        super().__init__(config, game, x, y)
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                            self.config.config['main_game']['monsters']['red']['image'])).convert_alpha())
+
+class MonsterPurple(Monster):
+    def __init__(self, config: Config, game: Game, x: int, y: int) -> None:
+        super().__init__(config, game, x, y)
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                            self.config.config['main_game']['monsters']['purple']['image'])).convert_alpha())
+
+class MonsterBlueFly(Monster):
+    def __init__(self, config: Config, game: Game, x: int, y: int) -> None:
+        super().__init__(config, game, x, y)
+        self.reload_image(pygame.image.load(
+            os.path.join(Path.assets_images_path,
+                            self.config.config['main_game']['monsters']['blue_fly']['image'])).convert_alpha())
+
 class Ball(pygame.sprite.Sprite):
     def __init__(self, config: Config, position: pygame.Vector2, target: pygame.Vector2) -> None:
         super().__init__()
@@ -448,6 +511,10 @@ class Platform(pygame.sprite.Sprite):
             self.rect.y = self.config.config['screen']['height'] / 2 - height / 2
         else:
             self.rect.y = self.config.config['screen']['height'] - y
+
+        self.position = pygame.Vector2(self.rect.x, self.rect.y)
+        self.moving_speed = 0
+        self.moving_direction = -1
     
     def reload_image(self, img: pygame.Surface):
         old_pos = self.rect.center
@@ -494,11 +561,12 @@ class BluePlatform(Platform):
         super().update(*args, **kwargs)
 
         # Change direction
-        if self.rect.x <= 0 or self.rect.x >= self.config.config['screen']['width'] - self.rect.width:
+        if self.position[0] <= 0 or self.position[0] >= self.config.config['screen']['width'] - self.rect.width:
             self.moving_direction *= -1
         
         # Move
-        self.rect.x += self.moving_direction * self.moving_speed * game.delta_time
+        self.position[0] += self.moving_direction * self.moving_speed * game.delta_time
+        self.rect.x = self.position[0]
 
 class BrownPlatform(Platform):
     def __init__(self, config: Config, width: int, height: int, x: int | None, y: int | None):
@@ -510,7 +578,7 @@ class BrownPlatform(Platform):
     
     def bounced(self):
         super().bounced()
-        
+
         self.reload_image(pygame.image.load(
             os.path.join(Path.assets_images_path,
                          self.config.config['main_game']['platform']['breaking']['image_broken'])).convert_alpha())
@@ -526,6 +594,7 @@ class MainGameState(GameState):
         self.config = config
 
         self.platforms = pygame.sprite.Group()
+        self.monsters = pygame.sprite.Group()
         self.points = 0
         self.vp_offset = 0
 
@@ -554,12 +623,14 @@ class MainGameState(GameState):
     def draw(self, screen):
         self.jumper.draw(screen)
         self.platforms.draw(screen)
+        self.monsters.draw(screen)
         screen.blit(self.points_text, self.points_text_rect)
 
     def move_viewport(self):
         if self.jumper.rect.top < 0:
             self.jumper.update(update_vp=True)
             self.platforms.update(update_vp=True)
+            self.monsters.update(update_vp=True)
             self.vp_offset += self.config.config['main_game']['vp_scrollspeed']
     
     def generate_platform_type(self):
@@ -589,6 +660,14 @@ class MainGameState(GameState):
                                            random_position[1])
             self.platforms.add(new_platform)
 
+            # Spawn monsters
+            if random.randint(0, 20) == 1 and isinstance(new_platform, GreenPlatform):
+                monsters = [MonsterBlue, MonsterBlueFly, MonsterPurple, MonsterRed]
+                monster = random.choice(monsters)
+                monster = monster(self.config, self.game, new_platform.rect.centerx, new_platform.rect.centery)
+
+                self.monsters.add(monster)
+
         # Delete old platforms
         for platform in self.platforms.sprites():
             if platform.rect.top > self.config.config['screen']['height']:
@@ -605,6 +684,7 @@ class MainGameState(GameState):
 
         self.jumper.update()
         self.platforms.update()
+        self.monsters.update()
 
         # Get points
         self.points = max(self.points, (self.vp_offset + self.jumper.rect.bottom) / 100)

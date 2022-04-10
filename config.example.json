@@ -74,6 +74,20 @@
             "height": 20,
             "speed": 1.5
         },
+        "monsters": {
+            "blue": {
+                "image": "monster2.png"
+            },
+            "blue_fly": {
+                "image": "monster4.png"
+            },
+            "red": {
+                "image": "monster3.png"
+            },
+            "purple": {
+                "image": "monster1.png"
+            }
+        },
         "platform": {
             "static": {
                 "image": "green.png"
