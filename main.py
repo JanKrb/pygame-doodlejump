@@ -275,6 +275,32 @@ class StartState(GameState):
         else:
             pygame.mixer.Channel(0).play(self.game.background_music, loops=-1)
 
+class Ball(pygame.sprite.Sprite):
+    def __init__(self, config: Config, position: pygame.Vector2, target: pygame.Vector2) -> None:
+        super().__init__()
+
+        self.config = config
+        self.game = game
+
+        self.image = pygame.image.load(
+            os.path.join(Path.assets_images_path, self.config.config['main_game']['ball']['image'])).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (self.config.config['main_game']['ball']['width'],
+                                                          self.config.config['main_game']['ball']['height']))
+        self.rect = self.image.get_rect()
+
+        self.position = position
+        self.rect.center = self.position
+        self.target = target
+        self.heading = self.target - self.position
+        self.heading.normalize_ip()
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.image, self.rect)
+    
+    def update(self) -> None:
+        self.position += self.heading * self.config.config['main_game']['ball']['speed'] * game.delta_time
+        self.rect.center = self.position
+
 class Jumper(pygame.sprite.Sprite):
     def __init__(self, config: Config, platforms: pygame.sprite.Group) -> None:
         super().__init__()
@@ -289,6 +315,7 @@ class Jumper(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
         self.platforms = platforms
+        self.shots = pygame.sprite.Group()
 
         center_x = self.config.config['main_game']['jumper']['position']['center_x']
         center_y = self.config.config['main_game']['jumper']['position']['center_y']
@@ -314,6 +341,7 @@ class Jumper(pygame.sprite.Sprite):
         self.speed_x = 0  # Left < 0, Right > 0
 
     def draw(self, screen):
+        self.shots.draw(screen)
         screen.blit(self.image, self.rect)
 
     def jump(self):
@@ -355,6 +383,7 @@ class Jumper(pygame.sprite.Sprite):
                 jump_sound.play()
         
     def update(self, *args, **kwargs):
+        self.shots.update()
         self.jump()
 
         if kwargs.get('update_vp', False):
@@ -364,7 +393,7 @@ class Jumper(pygame.sprite.Sprite):
         elif kwargs.get('move_right', False):
             self.move_right(stop=kwargs.get('stop', False))
         elif kwargs.get('shoot', False):
-            self.shoot()
+            self.shoot(kwargs.get('shoot_position', None))
         
         self.move()
     
@@ -388,8 +417,8 @@ class Jumper(pygame.sprite.Sprite):
         
         self.speed_x = self.config.config['main_game']['jumper']['move_x_speed']
     
-    def shoot(self):
-        print('shoot')
+    def shoot(self, click_position):
+        self.shots.add(Ball(self.config, pygame.Vector2(self.position), pygame.Vector2(click_position)))
     
     def update_vp(self):
         self.position[1] += self.config.config['main_game']['vp_scrollspeed']
@@ -589,8 +618,8 @@ class MainGameState(GameState):
         else:
             self.jumper.update(move_right=True)
 
-    def keystroke_space(self):
-        self.jumper.update(shoot=True)
+    def keystroke_shoot(self, position):
+        self.jumper.update(shoot=True, shoot_position=position)
     
     def pause(self):
         game.state = PauseGameState(self.config, self.game, self)
@@ -601,17 +630,16 @@ class MainGameState(GameState):
                 self.keystroke_left()
             elif event.key == pygame.K_RIGHT:
                 self.keystroke_right()
-            elif event.key == pygame.K_SPACE:
-                self.keystroke_space()
             elif event.key == pygame.K_p:
                 self.pause()
-        if event.type == pygame.KEYUP:
+        elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 self.keystroke_left(stop=True)
             elif event.key == pygame.K_RIGHT:
                 self.keystroke_right(stop=True)
-            elif event.key == pygame.K_SPACE:
-                self.keystroke_space(stop=True)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self.keystroke_shoot(pygame.Vector2(pygame.mouse.get_pos()))
 
 class Highscore:
     def __init__(self, config: Config):
