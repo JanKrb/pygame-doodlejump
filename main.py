@@ -491,6 +491,8 @@ class BluePlatform(Platform):
         self.moving_direction = -1 # < 0 left, > 0 right
     
     def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+
         # Change direction
         if self.rect.x <= 0 or self.rect.x >= self.config.config['screen']['width'] - self.rect.width:
             self.moving_direction *= -1
@@ -507,6 +509,8 @@ class BrownPlatform(Platform):
         self.bouncable = True
     
     def bounced(self):
+        super().bounced()
+        
         self.reload_image(pygame.image.load(
             os.path.join(Path.assets_images_path,
                          self.config.config['main_game']['platform']['breaking']['image_broken'])).convert_alpha())
