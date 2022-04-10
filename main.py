@@ -59,7 +59,8 @@ class Background:
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, config: Config, width: int, height: int, x: int | None, y: int, text: str,
-                 color: tuple = (0, 0, 0), font: tuple | pygame.font.Font = ('arial', 24), click_callback=None) -> None:
+                 color: tuple = (0, 0, 0), font: tuple | pygame.font.Font = ('arial', 24), click_callback=None,
+                 state=None) -> None:
         super().__init__()
 
         self.config = config
@@ -91,8 +92,11 @@ class Button(pygame.sprite.Sprite):
             self.font = pygame.font.SysFont(*font)
         else:
             self.font = font
+        
+        self.state = state
 
         self.text = self.font.render(text, True, color)
+        self.debug = text
         self.text_rect = self.text.get_rect()
         self.text_rect.center = self.rect.center
 
@@ -110,7 +114,7 @@ class Button(pygame.sprite.Sprite):
         screen.blit(self.text, self.text_rect)
 
     def trigger_click(self):
-        if self.hovered:
+        if self.hovered and isinstance(game.state, self.state):
             self.click_callback()
 
 
@@ -221,17 +225,17 @@ class StartState(GameState):
                                    self.logo_rect.bottom + self.config.config['start_screen']['play_button'][
                                        'logo_margin_top'], 'Start Game', (0, 0, 0),
                                    pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                   self.start_game)
+                                   self.start_game, StartState)
         self.quit_button = Button(config, 250, 50, None,
                                   self.start_button.rect.bottom + self.config.config['start_screen']['quit_button'][
                                       'play_margin_top'], 'Quit', (0, 0, 0),
                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                  self.stop_game)
+                                  self.stop_game, StartState)
         self.music_button = Button(config, 250, 50, None,
                                   self.quit_button.rect.bottom + self.config.config['start_screen']['music_button'][
                                       'quit_margin_top'], 'Toggle Music', (0, 0, 0),
                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                  self.toggle_music)
+                                  self.toggle_music, StartState)
 
         game.buttons.add(self.start_button)
         game.buttons.add(self.quit_button)
@@ -663,12 +667,12 @@ class GameOverGameState(GameState):
                                    self.logo_rect.bottom + self.config.config['start_screen']['play_button'][
                                        'logo_margin_top'], 'Retry', (0, 0, 0),
                                    pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                   self.restart_game)
+                                   self.restart_game, GameOverGameState)
         self.quit_button = Button(config, 250, 50, None,
                                   self.restart_button.rect.bottom + self.config.config['start_screen']['quit_button'][
                                       'play_margin_top'], 'Quit', (0, 0, 0),
                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                  self.stop_game)
+                                  self.stop_game, GameOverGameState)
 
         game.buttons.add(self.restart_button)
         game.buttons.add(self.quit_button)
@@ -733,17 +737,17 @@ class PauseGameState(GameState):
                                    self.logo_rect.bottom + self.config.config['start_screen']['play_button'][
                                        'logo_margin_top'], 'Unpause', (0, 0, 0),
                                    pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                   self.unpause)
+                                   self.unpause, PauseGameState)
         self.restart_button = Button(config, 250, 50, None,
                                    self.unpause_button.rect.bottom + self.config.config['start_screen']['quit_button'][
                                        'play_margin_top'], 'Restart', (0, 0, 0),
                                    pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                   self.restart_game)
+                                   self.restart_game, PauseGameState)
         self.quit_button = Button(config, 250, 50, None,
                                   self.restart_button.rect.bottom + self.config.config['start_screen']['quit_button'][
                                       'play_margin_top'], 'Quit', (0, 0, 0),
                                   pygame.font.Font(os.path.join(Path.assets_fonts_path, 'al-seana.ttf'), 30),
-                                  self.stop_game)
+                                  self.stop_game, PauseGameState)
 
         game.buttons.add(self.restart_button)
         game.buttons.add(self.quit_button)
