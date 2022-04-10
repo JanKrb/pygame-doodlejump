@@ -364,6 +364,13 @@ class Ball(pygame.sprite.Sprite):
         self.position += self.heading * self.config.config['main_game']['ball']['speed'] * game.delta_time
         self.rect.center = self.position
 
+        self.collision_monster()
+    
+    def collision_monster(self):
+        hits = pygame.sprite.spritecollide(
+            self, self.game.state.monsters, False, pygame.sprite.collide_mask)
+        [hit.kill() for hit in hits]
+
 class Jumper(pygame.sprite.Sprite):
     def __init__(self, config: Config, platforms: pygame.sprite.Group) -> None:
         super().__init__()
