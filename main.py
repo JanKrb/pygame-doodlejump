@@ -453,6 +453,7 @@ class Jumper(pygame.sprite.Sprite):
                 jump_sound.play()
         
     def update(self, *args, **kwargs):
+        self.collision_monster()
         self.shots.update()
         self.jump()
 
@@ -466,6 +467,16 @@ class Jumper(pygame.sprite.Sprite):
             self.shoot(kwargs.get('shoot_position', None))
         
         self.move()
+    
+    def collision_monster(self):
+        if not isinstance(game.state, MainGameState):
+            return
+
+        hits = pygame.sprite.spritecollide(
+            self, game.state.monsters, False, pygame.sprite.collide_mask)
+        
+        if len(hits) > 0:
+            game.state = GameOverGameState(self.config, game, game.state.points)
     
     def move(self):
         self.position[0] += self.speed_x * game.delta_time
