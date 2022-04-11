@@ -291,6 +291,7 @@ class Monster(pygame.sprite.Sprite):
         self.rect.centerx = x
         self.rect.bottom = y - 5
         self.position = pygame.Vector2(self.rect.centerx, self.rect.bottom)
+        self.shoot_timer = Timer(self.config.config['main_game']['enemy_ball']['timer'], False)
     
     def reload_image(self, img: pygame.Surface):
         old_pos = self.rect.center
@@ -302,6 +303,9 @@ class Monster(pygame.sprite.Sprite):
     def update(self, *args, **kwargs):
         if kwargs.get('update_vp', False):
             self.update_vp()
+
+        if self.shoot_timer.is_next_stop_reached():
+            game.state.shots.add(EnemyBall(self.config, pygame.Vector2(self.position), pygame.Vector2(self.game.state.jumper.position)))
     
     def update_vp(self):
         self.position[1] += self.config.config['main_game']['vp_scrollspeed']
@@ -380,6 +384,42 @@ class Ball(pygame.sprite.Sprite):
         hits = pygame.sprite.spritecollide(
             self, self.game.state.monsters, False, pygame.sprite.collide_mask)
         [hit.kill() for hit in hits]
+
+class EnemyBall(pygame.sprite.Sprite):
+    def __init__(self, config: Config, position: pygame.Vector2, target: pygame.Vector2) -> None:
+        super().__init__()
+
+        self.config = config
+        self.game = game
+
+        self.image = pygame.image.load(
+            os.path.join(Path.assets_images_path, self.config.config['main_game']['enemy_ball']['image'])).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (self.config.config['main_game']['enemy_ball']['width'],
+                                                          self.config.config['main_game']['enemy_ball']['height']))
+        self.rect = self.image.get_rect()
+
+        self.position = position
+        self.rect.center = self.position
+        self.target = target
+        self.heading = self.target - self.position
+        self.heading.normalize_ip()
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.image, self.rect)
+    
+    def update(self, *args, **kwargs) -> None:
+        if kwargs.get('update_vp', False):
+            self.update_vp()
+        
+        if self.rect.x < 0 or self.rect.x > self.config.config['screen']['width']:
+            self.kill()
+        
+        self.position += self.heading * self.config.config['main_game']['enemy_ball']['speed'] * game.delta_time
+        self.rect.center = self.position
+    
+    def update_vp(self):
+        self.position[1] += self.config.config['main_game']['vp_scrollspeed']
+        self.rect.bottom = self.position[1]
 
 class Jumper(pygame.sprite.Sprite):
     def __init__(self, config: Config, platforms: pygame.sprite.Group) -> None:
@@ -485,7 +525,9 @@ class Jumper(pygame.sprite.Sprite):
 
         hits = pygame.sprite.spritecollide(
             self, game.state.monsters, False, pygame.sprite.collide_mask)
-        
+        hits.extend(pygame.sprite.spritecollide(
+            self, game.state.shots, False, pygame.sprite.collide_mask))
+
         if len(hits) > 0:
             game.state = GameOverGameState(self.config, game, game.state.points)
     
@@ -642,6 +684,7 @@ class MainGameState(GameState):
         self.platforms.add(start_platform)
 
         self.jumper = Jumper(self.config, self.platforms)
+        self.shots = pygame.sprite.Group()
         self.regenerate_platforms(on_boot=True)
 
         # Points
@@ -658,6 +701,7 @@ class MainGameState(GameState):
         self.jumper.draw(screen)
         self.platforms.draw(screen)
         self.monsters.draw(screen)
+        self.shots.draw(screen)
         screen.blit(self.points_text, self.points_text_rect)
 
     def move_viewport(self):
@@ -665,6 +709,7 @@ class MainGameState(GameState):
             self.jumper.update(update_vp=True)
             self.platforms.update(update_vp=True)
             self.monsters.update(update_vp=True)
+            self.shots.update(update_vp=True)
             self.vp_offset += self.config.config['main_game']['vp_scrollspeed']
     
     def generate_platform_type(self):
@@ -719,6 +764,7 @@ class MainGameState(GameState):
         self.jumper.update()
         self.platforms.update()
         self.monsters.update()
+        self.shots.update()
 
         # Get points
         self.points = max(self.points, (self.vp_offset + self.jumper.rect.bottom) / 100)

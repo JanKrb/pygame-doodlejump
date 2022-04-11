@@ -45,7 +45,7 @@
         }
     },
     "main_game": {
-        "vp_scrollspeed": 15,
+        "vp_scrollspeed": 600,
         "jumper": {
             "image": "jumper.png",
             "width": 69,
@@ -73,6 +73,13 @@
             "width": 20,
             "height": 20,
             "speed": 1.5
+        },
+        "enemy_ball": {
+            "image": "ball2.png",
+            "width": 20,
+            "height": 20,
+            "speed": 0.25,
+            "timer": 5000
         },
         "monsters": {
             "blue": {
