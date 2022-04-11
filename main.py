@@ -780,7 +780,6 @@ class Highscore:
             highscores = highscores[:self.config.config['highscore']['max_highscores']]
 
             highscores = json.dumps(highscores)
-            f.seek(0)
             f.write(highscores)
             f.close()
         return self.load_highscore()
