@@ -755,11 +755,14 @@ class Highscore:
         self.highscore = self.load_highscore()
     
     def load_highscore(self) -> int:
-        with open(self.highscore_file, 'r') as f:
-            highscores = json.load(f)
-            highscores.sort(reverse=True)
+        try:
+            with open(self.highscore_file, 'r') as f:
+                highscores = json.load(f)
+                highscores.sort(reverse=True)
             
-            return highscores[0]
+                return highscores[0]
+        except:
+            return 0
     
     def write_highscore(self, points) -> int:
         with open(self.highscore_file, 'r+') as f:
