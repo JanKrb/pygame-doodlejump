@@ -364,6 +364,9 @@ class Ball(pygame.sprite.Sprite):
         if kwargs.get('update_vp', False):
             self.update_vp()
         
+        if self.rect.x < 0 or self.rect.x > self.config.config['screen']['width']:
+            self.kill()
+        
         self.position += self.heading * self.config.config['main_game']['ball']['speed'] * game.delta_time
         self.rect.center = self.position
 
