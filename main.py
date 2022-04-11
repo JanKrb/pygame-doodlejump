@@ -360,11 +360,18 @@ class Ball(pygame.sprite.Sprite):
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.image, self.rect)
     
-    def update(self) -> None:
+    def update(self, *args, **kwargs) -> None:
+        if kwargs.get('update_vp', False):
+            self.update_vp()
+        
         self.position += self.heading * self.config.config['main_game']['ball']['speed'] * game.delta_time
         self.rect.center = self.position
 
         self.collision_monster()
+    
+    def update_vp(self):
+        self.position[1] += self.config.config['main_game']['vp_scrollspeed']
+        self.rect.bottom = self.position[1]
     
     def collision_monster(self):
         hits = pygame.sprite.spritecollide(
@@ -459,6 +466,7 @@ class Jumper(pygame.sprite.Sprite):
 
         if kwargs.get('update_vp', False):
             self.update_vp()
+            self.shots.update(update_vp=True)
         elif kwargs.get('move_left', False):
             self.move_left(stop=kwargs.get('stop', False))
         elif kwargs.get('move_right', False):
