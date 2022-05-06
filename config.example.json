@@ -21,6 +21,7 @@
         "jump": "jump.wav",
         "platform_break": "platform_break.mp3",
         "game_over": "game_over.wav",
+        "monster": "monster.mp3",
         "volume": 0.25
     },
     "start_screen": {
@@ -109,7 +110,7 @@
                 "animation_speed": 100,
                 "image_broken": "red2.png"
             },
-            "max_platforms": 25,
+            "max_platforms": 20,
             "width": 75,
             "height": 13,
             "min_distance": 500,
